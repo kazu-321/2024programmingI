@@ -50,24 +50,34 @@ int main49(){
     printf("\n\n課題4-9\n");
     printf("n進法からm進法に変換します。\n");
     printf("入力は各桁ごとに改行してください。\n");
-    int n,m;
+    int n,m,index,num;
     printf("n>>>");scanf("%d",&n);
     printf("m>>>");scanf("%d",&m);
-    if(n==m){
-        printf("n==mです。\n");
-        return 0;
-    }
-    int index=0;
-    int num10=0;
-    while(1){
-        int num=0;
-        printf("%d桁目の値を入力>>>",index+1);
+    // if(n==m){
+    //     printf("n==mです。\n");
+    //     return 0;
+    // }
+    printf("桁数>>>");scanf("%d",&index);
+    long long int num10=0;
+    for(int i=0;i<index;i++){
+        printf("%d桁目の値を入力>>>",i+1);
         scanf("%d",&num);
-        num10+=power(n,index)*num;
-        printf("10進数に変換後:%d\n",num10);
-        // printf("変換後の値:%d");
-        index++;
+        num10+=power(n,i)*num;
     }
+
+    index=0;
+    while(power(m,index)<num10) index++;
+    printf("答えは%d桁\n",index);
+
+    int ans[index];
+    int i=0;
+    while(num10!=0){
+        // printf("%d",num10%m);
+        ans[index-i]=num10%m;
+        num10=(int) (num10/m);
+        i++;
+    }
+    for(int i=0;i<index;i++) printf("%d",ans[i]);
     return 1;
 }
 
