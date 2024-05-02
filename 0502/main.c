@@ -40,11 +40,37 @@ int main48(){
 }
 
 
+int power(int base,int exp){
+    int ans=1;
+    for(int i=0;i<exp;i++) ans*=base;
+    return ans;
+}
+
 int main49(){
     printf("\n\n課題4-9\n");
     printf("n進法からm進法に変換します。\n");
     printf("入力は各桁ごとに改行してください。\n");
-    while(1){
-        
+    int n,m;
+    printf("n>>>");scanf("%d",&n);
+    printf("m>>>");scanf("%d",&m);
+    if(n==m){
+        printf("n==mです。\n");
+        return 0;
     }
+    int index=0;
+    int num10=0;
+    while(1){
+        int num=0;
+        printf("%d桁目の値を入力>>>",index+1);
+        scanf("%d",&num);
+        num10+=power(n,index)*num;
+        printf("10進数に変換後:%d\n",num10);
+        // printf("変換後の値:%d");
+        index++;
+    }
+    return 1;
+}
+
+int main(){
+    main49();
 }
