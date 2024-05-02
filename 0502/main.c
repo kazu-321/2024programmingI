@@ -53,10 +53,10 @@ int main49(){
     int n,m,index,num;
     printf("n>>>");scanf("%d",&n);
     printf("m>>>");scanf("%d",&m);
-    // if(n==m){
-    //     printf("n==mです。\n");
-    //     return 0;
-    // }
+    if(n==m){
+        printf("n==mです。\n");
+        return 0;
+    }
     printf("桁数>>>");scanf("%d",&index);
     long long int num10=0;
     for(int i=0;i<index;i++){
@@ -66,18 +66,19 @@ int main49(){
     }
 
     index=0;
-    while(power(m,index)<num10) index++;
-    printf("答えは%d桁\n",index);
+    while(power(m,index)<=num10) index++;
+    // printf("10進数で %lld\n",num10);
+    // printf("答えは%d桁\n",index);
 
     int ans[index];
     int i=0;
     while(num10!=0){
-        // printf("%d",num10%m);
-        ans[index-i]=num10%m;
+        // printf("%d %d %lld\n",i,index-i,num10%m);
+        ans[index-i-1]=num10%m;
         num10=(int) (num10/m);
         i++;
     }
-    for(int i=0;i<index;i++) printf("%d",ans[i]);
+    for(int i=0;i<index;i++) printf("%d ",ans[i]);
     return 1;
 }
 
