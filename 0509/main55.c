@@ -9,5 +9,5 @@ int main(void){
     printf("答えの数字を入力>>>"); scanf("%d",&user_input);
     if(user_input==2) printf("正解\n");
     else printf("不正解\n");
-    return 1;
+    return 0;
 }

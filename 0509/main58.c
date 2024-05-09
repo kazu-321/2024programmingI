@@ -10,5 +10,5 @@ int main(void){
     if(max_num<b) max_num=b;
     if(max_num<c) max_num=c;
     printf("最大値は%dです。\n",max_num);
-    return 1;
+    return 0;
 }

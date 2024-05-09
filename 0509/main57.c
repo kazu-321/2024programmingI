@@ -25,5 +25,5 @@ int main(void){
             break;
     }
     printf("日です。\n");
-    return 1;
+    return 0;
 }

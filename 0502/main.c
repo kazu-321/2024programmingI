@@ -27,6 +27,7 @@ int main46(){
     printf("4) %d\n",x);
     x--;
     printf("5) %d\n",x);
+    return 0;
 }
 
 
