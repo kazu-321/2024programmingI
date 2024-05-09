@@ -7,7 +7,7 @@ int main(void){
     printf("2. おまえ\n");
     printf("3. ばなな\n");
     printf("答えの数字を入力>>>"); scanf("%d",&user_input);
-    if(user_input==2) printf("正解\n");
-    else printf("不正解\n");
+    if(user_input==2) printf("ビバいい！\n");
+    else printf("ビバよくない！！\n");
     return 0;
 }
