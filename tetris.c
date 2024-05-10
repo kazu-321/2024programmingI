@@ -3,14 +3,16 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
-#define BUTTON_ARROW  224 // いずれかの矢印キー  
-#define BUTTON_LEFT    75 // ←：ブロックを左に移動させる
-#define BUTTON_RIGHT   77 // →：ブロックを右に移動させる
-#define BUTTON_UP      72 // ↑：ブロックを一気に落下させる
-#define BUTTON_DOWN    80 // ↓：ブロックの落ちるスピードを加速させる
+
+#define BUTTON_ARROW   91 // いずれかの矢印キー  
+#define BUTTON_LEFT    68 // ←：ブロックを左に移動させる
+#define BUTTON_RIGHT   67 // →：ブロックを右に移動させる
+#define BUTTON_UP      65 // ↑：ブロックを一気に落下させる
+#define BUTTON_DOWN    66 // ↓：ブロックの落ちるスピードを加速させる
 #define PIVOT_CW      120 // X ：ブロックを時計回りに回転させる
 #define PIVOT_CCW     122 // Z ：ブロックを逆時計回りに回転させる
 #define PAUSE          27 // ESC: 一時停止
+
 struct termios orig_termios;
 void reset_terminal_mode();
 void set_conio_terminal_mode();
@@ -19,14 +21,40 @@ void fall_block(void);
 void remove_line(void);
 void draw(void);
 void update(void);
-
 struct BLOCK{
     int id;
     int color[3];
     int shape[4][4];
+} blocks[]={
+    {1,{24,235,249},{
+    {0,0,0,0},
+    {1,1,1,1},
+    {0,0,0,0},
+    {0,0,0,0}}}
 };
-
-char key;
+int key;
+int field[20][10]={
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0}
+};
 
 void reset_terminal_mode() {tcsetattr(0, TCSANOW, &orig_termios);}
 
@@ -43,9 +71,13 @@ int main() {
     set_conio_terminal_mode();
     while(1) {
         key=getchar();
-        printf("\nキーコード: %d", key);
-        if (key == 27) { // ESCキーで終了
-            break;
+        printf("キーコード: %d\n", key);
+        if (key == PAUSE) { // ESCキーで終了
+            if(key==BUTTON_ARROW){
+                printf("arrow\n");
+            }else{
+                printf("PAUSE\n");
+            }
         }
     }
     return 0;
