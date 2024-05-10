@@ -67,12 +67,27 @@ void set_conio_terminal_mode() {
     atexit(reset_terminal_mode);    // プログラム終了時に元の設定に戻す
 }
 
+void draw(void){
+    printf("\033[1;1H");
+    for(int i=0;i<22;i++){
+        printf("\033[K");
+        printf("\033[48;2;255;255;255m　\033[m");
+        for(int i=0;i<12;i++){
+            printf("　");
+        }
+        printf("\033[48;2;255;255;255m　\033[m");
+        printf("\033[1B");
+    }
+}
+
 int main() {
+    draw();
     set_conio_terminal_mode();
     while(1) {
         key=getchar();
         printf("キーコード: %d\n", key);
         if (key == PAUSE) { // ESCキーで終了
+            key=getchar();
             if(key==BUTTON_ARROW){
                 printf("arrow\n");
             }else{
