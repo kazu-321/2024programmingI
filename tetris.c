@@ -3,10 +3,28 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
-
+#define BUTTON_ARROW  224 // いずれかの矢印キー  
+#define BUTTON_LEFT    75 // ←：ブロックを左に移動させる
+#define BUTTON_RIGHT   77 // →：ブロックを右に移動させる
+#define BUTTON_UP      72 // ↑：ブロックを一気に落下させる
+#define BUTTON_DOWN    80 // ↓：ブロックの落ちるスピードを加速させる
+#define PIVOT_CW      120 // X ：ブロックを時計回りに回転させる
+#define PIVOT_CCW     122 // Z ：ブロックを逆時計回りに回転させる
+#define PAUSE          27 // ESC: 一時停止
 struct termios orig_termios;
 void reset_terminal_mode();
 void set_conio_terminal_mode();
+void move_block(void);
+void fall_block(void);
+void remove_line(void);
+void draw(void);
+void update(void);
+
+struct BLOCK{
+    int id;
+    int color[3];
+    int shape[4][4];
+};
 
 char key;
 

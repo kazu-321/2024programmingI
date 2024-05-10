@@ -2,6 +2,7 @@
     "ros.distro": "humble",
     "files.associations": {
         "tetris.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "unistd.h": "c"
     }
 }
