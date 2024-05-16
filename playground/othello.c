@@ -1,174 +1,209 @@
-#include "othello.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <termios.h>
+#include <stdbool.h>
 
+#define SIZE 8
+#define EMPTY '.'
+#define BLACK 'B'
+#define WHITE 'W'
 
-int main(){
-    initialize();
-    initialize_board();
-    print_board();
-    
-    while(1){
-        if(kbhit()){
-            key = getch();
-            if (key == 'q') break; // 'q' to quit
-            int x = -1, y = -1;
-            switch(key) {
-                case KEY_UP:    y--; break;
-                case KEY_DOWN:  y++; break;
-                case KEY_LEFT:  x--; break;
-                case KEY_RIGHT: x++; break;
-                case ' ': // Space to place a disc
-                    if (make_move(x, y, current_player)) {
-                        switch_player();
-                    }
+char board[SIZE][SIZE];
+int cursor_row = 0, cursor_col = 0;
+struct termios orig_termios;
+
+void init_board() {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            board[i][j] = EMPTY;
+        }
+    }
+    board[3][3] = WHITE;
+    board[4][4] = WHITE;
+    board[3][4] = BLACK;
+    board[4][3] = BLACK;
+}
+
+void print_board(char player) {
+    printf("\033[1;1H\033[J"); // Clear screen
+    printf("Use arrow keys to move cursor, space to place piece\n");
+    printf("\n\033[2;1H");
+
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (i == cursor_row && j == cursor_col) {
+                if(player==BLACK) printf("\033[40mO\033[0m");
+                else printf("\033[47mO\033[0m");
+            } else {
+                switch(board[i][j]){
+                case EMPTY:
+                    printf("\033[42m\033[34m.\033[0m");
                     break;
-                default: break;
+                case BLACK:
+                    printf("\033[42m\033[40m@\033[0m");
+                    break;
+                case WHITE:
+                    printf("\033[44m\033[47m@\033[0m");
+                    break;
+                }
             }
-            print_board();
-            if (game_over()) break;
+        }
+        printf("\n\033[%d;1H",3+i);
+    }
+}
+
+bool is_valid_move(int row, int col, char player) {
+    if (board[row][col] != EMPTY) return false;
+
+    char opponent = (player == BLACK) ? WHITE : BLACK;
+    int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+    bool valid = false;
+
+    for (int i = 0; i < 8; i++) {
+        int r = row + directions[i][0];
+        int c = col + directions[i][1];
+        bool has_opponent = false;
+
+        while (r >= 0 && r < SIZE && c >= 0 && c < SIZE && board[r][c] == opponent) {
+            r += directions[i][0];
+            c += directions[i][1];
+            has_opponent = true;
+        }
+
+        if (has_opponent && r >= 0 && r < SIZE && c >= 0 && c < SIZE && board[r][c] == player) {
+            valid = true;
+            break;
         }
     }
-    reset();
+
+    return valid;
+}
+
+void place_move(int row, int col, char player) {
+    board[row][col] = player;
+    char opponent = (player == BLACK) ? WHITE : BLACK;
+    int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+
+    for (int i = 0; i < 8; i++) {
+        int r = row + directions[i][0];
+        int c = col + directions[i][1];
+        bool has_opponent = false;
+
+        while (r >= 0 && r < SIZE && c >= 0 && c < SIZE && board[r][c] == opponent) {
+            r += directions[i][0];
+            c += directions[i][1];
+            has_opponent = true;
+        }
+
+        if (has_opponent && r >= 0 && r < SIZE && c >= 0 && c < SIZE && board[r][c] == player) {
+            r = row + directions[i][0];
+            c = col + directions[i][1];
+
+            while (board[r][c] == opponent) {
+                board[r][c] = player;
+                r += directions[i][0];
+                c += directions[i][1];
+            }
+        }
+    }
+}
+
+bool has_valid_move(char player) {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (is_valid_move(i, j, player)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void enable_raw_mode() {
+    struct termios raw = orig_termios;
+
+    raw.c_lflag &= ~(ECHO | ICANON | ISIG);
+    raw.c_iflag &= ~(IXON | ICRNL);
+    raw.c_oflag &= ~(OPOST);
+
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+void disable_raw_mode() {
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+}
+
+void process_input(char *input, char *player) {
+    switch (input[0]) {
+        case 'A': // Up
+            if (cursor_row > 0) cursor_row--;
+            break;
+        case 'B': // Down
+            if (cursor_row < SIZE - 1) cursor_row++;
+            break;
+        case 'C': // Right
+            if (cursor_col < SIZE - 1) cursor_col++;
+            break;
+        case 'D': // Left
+            if (cursor_col > 0) cursor_col--;
+            break;
+        case ' ': // Space
+            printf("space!\n");
+            if (is_valid_move(cursor_row, cursor_col, *player)) {
+                place_move(cursor_row, cursor_col, *player);
+                *player = (*player == BLACK) ? WHITE : BLACK;
+            }
+            break;
+    }
+}
+
+int main() {
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    atexit(disable_raw_mode);
+    enable_raw_mode();
+
+    init_board();
+    char player = BLACK;
+    char input[3];
+
+    while (true) {
+        print_board(player);
+        if (!has_valid_move(player)) {
+            if (!has_valid_move((player == BLACK) ? WHITE : BLACK)) {
+                printf("Game over!\n");
+                break;
+            } else {
+                printf("Player %c has no valid moves, skipping turn.\n", player);
+                player = (player == BLACK) ? WHITE : BLACK;
+                continue;
+            }
+        }
+
+        read(STDIN_FILENO, &input, 1);
+
+        if (input[0] == '\033') {
+            read(STDIN_FILENO,&input+1,1);
+            if(input[1] == '['){
+                read(STDIN_FILENO,&input+2,1);
+                process_input(&input[2], &player);
+            }
+        }
+        process_input(&input[0],&player);
+
+        input[0] = 0;
+    }
+
+    int black_count = 0, white_count = 0;
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (board[i][j] == BLACK) black_count++;
+            if (board[i][j] == WHITE) white_count++;
+        }
+    }
+
+    printf("Final Score:\nBlack: %d\nWhite: %d\n", black_count, white_count);
+    printf("Winner: %c\n", (black_count > white_count) ? BLACK : WHITE);
+
     return 0;
-}
-
-void initialize_board() {
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            board[i][j] = ' ';
-        }
-    }
-    board[3][3] = 'W';
-    board[4][4] = 'W';
-    board[3][4] = 'B';
-    board[4][3] = 'B';
-}
-
-void print_board() {
-    clearScreen();
-    setPosition(0, 0);
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            if (board[i][j] == 'B') setCharColor(BLACK);
-            else if (board[i][j] == 'W') setCharColor(WHITE);
-            else setCharColor(DEFAULT);
-            printf(" %c ", board[i][j]);
-        }
-        printf("\n");
-    }
-    setCharColor(DEFAULT);
-    printf("Current Player: %c\n", current_player);
-}
-
-int make_move(int x, int y, char player) {
-    if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return 0;
-    if (board[x][y] != ' ') return 0;
-    if (!is_valid_move(x, y, player)) return 0;
-
-    // Place the disc
-    board[x][y] = player;
-
-    // Flip the opponent's discs
-    // Add the logic to flip the opponent's discs here
-
-    return 1;
-}
-
-int is_valid_move(int x, int y, char player) {
-    // Add the logic to check if the move is valid
-    // Check all 8 directions for valid moves
-    return 1;
-}
-
-void switch_player() {
-    if (current_player == 'B') current_player = 'W';
-    else current_player = 'B';
-}
-
-int count_discs(char player) {
-    int count = 0;
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            if (board[i][j] == player) count++;
-        }
-    }
-    return count;
-}
-
-int game_over() {
-    // Add the logic to check if the game is over
-    // The game is over when neither player can make a valid move
-    return 0;
-}
-
-
-
-int kbhit(void){
-    int ret;
-    fd_set rfd;
-    FD_ZERO(&rfd);
-    FD_SET(0,&rfd);
-    ret=select(1,&rfd,NULL,NULL,0);
-    if(ret==1) return 1;
-    else return 0;
-}
-
-int getch(void){
-    unsigned char c;
-    int n;
-    while((n=read(0,&c,1))<0&&errno==EINTR);
-    if(n==0) return -1;
-    else if((int)c==0x1b){
-        int c_=getch();
-        if(c_==0x5b){
-            return getch();
-        }else return c_;
-    }
-    else return (int)c;
-}
-
-static void onsignal(int sig){
-    signal(sig, SIG_IGN);
-    switch(sig){
-        case SIGINT:
-        case SIGQUIT:
-        case SIGTERM:
-        case SIGHUP:
-        exit(1);
-        break;
-    }
-}
-
-int tinit(void){
-    if (tcgetattr(1, &otty) < 0)
-    return -1;
-    ntty = otty;
-    ntty.c_iflag &= ~(INLCR|ICRNL|IXON|IXOFF|ISTRIP);
-    ntty.c_oflag &= ~OPOST;
-    ntty.c_lflag &= ~(ICANON|ECHO);
-    ntty.c_cc[VMIN] = 1;
-    ntty.c_cc[VTIME] = 0;
-    tcsetattr(1, TCSADRAIN, &ntty);
-    signal(SIGINT, onsignal);
-    signal(SIGQUIT, onsignal);
-    signal(SIGTERM, onsignal);
-    signal(SIGHUP, onsignal);
-}
-
-void initialize(void){
-    setAttribute(NORMAL);
-    setBackColor(BLACK);
-    setCharColor(WHITE);
-    clearScreen();
-    cursolOff();
-    tinit();
-}
-
-void reset(void){
-    setBackColor(BLACK);
-    setCharColor(WHITE);
-    setAttribute(NORMAL);
-    clearScreen();
-    cursolOn();
-    tcsetattr(1,TCSADRAIN,&otty);
-    write(1,"\n",1);
 }
