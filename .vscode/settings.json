@@ -10,7 +10,8 @@
         "stdlib.h": "c",
         "errno.h": "c",
         "gamebase.h": "c",
-        "bird.h": "c"
+        "bird.h": "c",
+        "othello.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
