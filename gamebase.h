@@ -1,5 +1,5 @@
-#ifndef __TETRIS__
-#define __TETROS__
+#ifndef __GAMEBASE__
+#define __GAMEBASE__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +7,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/select.h>
 
 #define clearScreen() printf("\033[2")
 #define setPosition(x,y) printf("\033[%d;%dH",(y)+1,(x)*2+1)
@@ -38,13 +39,6 @@
 #define KEY_DOWN 0x42
 #define KEY_RIGHT 0x43
 #define KEY_LEFT 0x44
-
-typedef struct cell {
-    char c; //表示文字
-    int charcolor; //表示色
-    int backcolor; //背景色
-    int attribute; //文字属性
-} Cell;
 
 extern int errno;
 struct termios otty,ntty;
