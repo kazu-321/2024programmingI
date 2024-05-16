@@ -5,7 +5,28 @@ int main(void){
     while(1){
         if(kbhit()){
             char key=getch();
-            printf("\033[1;1Hkey:%c\n",key);
+            if(key==0x1b){
+                key=getch();
+                if(key==0x5b){
+                    key=getch();
+                    switch(key){
+                        case KEY_UP:
+                            printf("up\n");
+                            break;
+                        case KEY_DOWN:
+                            printf("down\n");
+                            break;
+                        case KEY_RIGHT:
+                            printf("right\n");
+                            break;
+                        case KEY_LEFT:
+                            printf("left\n");
+                            break;
+                    }
+                }
+            }else{
+                printf("key:%c\n",key);
+            }
         }
     }
     reset();

@@ -34,6 +34,11 @@
 #define REVERSE 7 //明暗反転
 #define HIDE 8 //隠れ(見えない)
 #define STRIKE 9 //取り消し線
+#define KEY_UP 0x41
+#define KEY_DOWN 0x42
+#define KEY_RIGHT 0x43
+#define KEY_LEFT 0x44
+
 typedef struct cell {
     char c; //表示文字
     int charcolor; //表示色
