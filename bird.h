@@ -1,5 +1,5 @@
-#ifndef __GAMEBASE__
-#define __GAMEBASE__
+#ifndef __BIRD__
+#define __BIRD__
 
 #include <stdio.h>
 #include <errno.h>
@@ -37,8 +37,10 @@
 #define KEY_RIGHT 0x43
 #define KEY_LEFT 0x44
 
+char key;
 extern int errno;
 void initialize(void);
 void reset(void);
+void clear(void);
 
 #endif

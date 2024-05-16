@@ -1,6 +1,4 @@
 #include "bird.h"
-char key;
-void clear(void);
 
 int main(){
     initialize();
