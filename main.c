@@ -7,7 +7,6 @@ int main(){
     clear();
     while(1){
         if(kbhit()){
-            key=getch();
             
         }
     }
@@ -15,7 +14,7 @@ int main(){
 }
 
 void clear(void){
-    
+
 }
 
 int kbhit(void){
