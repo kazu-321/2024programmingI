@@ -1,99 +1,90 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <errno.h>
 #include <termios.h>
 #include <unistd.h>
+#include <signal.h>
+extern int errno;
+struct termios otty,ntty;
+int kbhit(void);
+int getch(void);
+int tinit(void);
+void initialize(void);
+void reset(void);
 
-#define BUTTON_ARROW   91 // いずれかの矢印キー  
-#define BUTTON_LEFT    68 // ←：ブロックを左に移動させる
-#define BUTTON_RIGHT   67 // →：ブロックを右に移動させる
-#define BUTTON_UP      65 // ↑：ブロックを一気に落下させる
-#define BUTTON_DOWN    66 // ↓：ブロックの落ちるスピードを加速させる
-#define PIVOT_CW      120 // X ：ブロックを時計回りに回転させる
-#define PIVOT_CCW     122 // Z ：ブロックを逆時計回りに回転させる
-#define PAUSE          27 // ESC: 一時停止
+int main(void){
+    initialize();
+    while(1){
+        if(kbhit()){
+            char key=getch();
+            printf("\033[1;1Hkey:%c\n",key);
+        }
+    }
+    reset();
 
-struct termios orig_termios;
-void reset_terminal_mode();
-void set_conio_terminal_mode();
-void move_block(void);
-void fall_block(void);
-void remove_line(void);
-void draw(void);
-void update(void);
-struct BLOCK{
-    int id;
-    int color[3];
-    int shape[4][4];
-} blocks[]={
-    {1,{24,235,249},{
-    {0,0,0,0},
-    {1,1,1,1},
-    {0,0,0,0},
-    {0,0,0,0}}}
-};
-int key;
-int field[20][10]={
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0},
-    {0,0,0,0,0,0,0,0,0,0}
-};
-
-void reset_terminal_mode() {tcsetattr(0, TCSANOW, &orig_termios);}
-
-void set_conio_terminal_mode() {
-    struct termios new_termios;     // 現在のターミナル設定を取得
-    tcgetattr(0, &orig_termios);
-    memcpy(&new_termios, &orig_termios, sizeof(new_termios));
-    cfmakeraw(&new_termios);        // リアルタイム入力の設定
-    tcsetattr(0, TCSANOW, &new_termios);
-    atexit(reset_terminal_mode);    // プログラム終了時に元の設定に戻す
 }
 
-void draw(void){
-    printf("\033[1;1H");
-    for(int i=0;i<22;i++){
-        printf("\033[K");
-        printf("\033[48;2;255;255;255m　\033[m");
-        for(int i=0;i<12;i++){
-            printf("　");
-        }
-        printf("\033[48;2;255;255;255m　\033[m");
-        printf("\033[1B");
+int kbhit(void){
+    int ret;
+    fd_set rfd;
+    FD_ZERO(&rfd);
+    FD_SET(0,&rfd);
+    ret=select(1,&rfd,NULL,NULL,0);
+    if(ret==1) return 1;
+    else return 0;
+}
+
+int getch(void){
+    unsigned char c;
+    int n;
+    while((n=read(0,&c,1))<0&&errno==EINTR);
+    if(n==0) return -1;
+    else return (int)c;
+}
+
+static void onsignal(int sig){
+    signal(sig, SIG_IGN);
+    switch(sig){
+        case SIGINT:
+        case SIGQUIT:
+        case SIGTERM:
+        case SIGHUP:
+        exit(1);
+        break;
     }
 }
 
-int main() {
-    draw();
-    set_conio_terminal_mode();
-    while(1) {
-        key=getchar();
-        printf("キーコード: %d\n", key);
-        if (key == PAUSE) { // ESCキーで終了
-            key=getchar();
-            if(key==BUTTON_ARROW){
-                printf("arrow\n");
-            }else{
-                printf("PAUSE\n");
-            }
-        }
-    }
-    return 0;
+int tinit(void){
+    if (tcgetattr(1, &otty) < 0)
+    return -1;
+    ntty = otty;
+    ntty.c_iflag &= ~(INLCR|ICRNL|IXON|IXOFF|ISTRIP);
+    ntty.c_oflag &= ~OPOST;
+    ntty.c_lflag &= ~(ICANON|ECHO);
+    ntty.c_cc[VMIN] = 1;
+    ntty.c_cc[VTIME] = 0;
+    tcsetattr(1, TCSADRAIN, &ntty);
+    signal(SIGINT, onsignal);
+    signal(SIGQUIT, onsignal);
+    signal(SIGTERM, onsignal);
+    signal(SIGHUP, onsignal);
+}
+
+void initialize(void){
+    setAttribute(NORMAL);
+    setBackColor(BLACK);
+    setCharColor(WHITE);
+    clearScreen();
+    cursolOff();
+    tinit();
+}
+
+void reset(void){
+    setBackColor(BLACK);
+    setCharColor(WHITE);
+    setAttribute(NORMAL);
+    clearScreen();
+    cursolOn();
+    tcsetattr(1,TCSADRAIN,&otty);
+    write(1,"\n",1);
 }
