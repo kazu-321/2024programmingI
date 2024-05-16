@@ -5,7 +5,9 @@ int main(){
     while(1){
         setPosition(0,0);
         printf("Test\n");
-        printf("%c",getch())
+        char key=getch();
+        if(key==0) printf("press!\n");
+        else printf("%c\n",key);
     }
     reset();
 }
@@ -60,9 +62,10 @@ void reset(void){
 int getch(void){
     int ret;
     fd_set rfd;
+    struct timeval timeout = {0,0};
     FD_ZERO(&rfd);
     FD_SET(0, &rfd);
-    ret = select(1, &rfd, NULL, NULL, 0);
+    ret = select(1, &rfd, NULL, NULL, &timeout);
     if (ret == 1){
         unsigned char c;
         int n;
