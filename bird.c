@@ -1,10 +1,11 @@
-#include "main.h"
+#include "bird.h"
 
 int main(){
     initialize();
     while(1){
         setPosition(0,0);
         printf("Test\n");
+        printf("%c",getch())
     }
     reset();
 }
@@ -54,4 +55,20 @@ void reset(void){
     cursolOn();
     tcsetattr(1,TCSADRAIN,&otty);
     write(1,"\n",1);
+}
+
+int getch(void){
+    int ret;
+    fd_set rfd;
+    FD_ZERO(&rfd);
+    FD_SET(0, &rfd);
+    ret = select(1, &rfd, NULL, NULL, 0);
+    if (ret == 1){
+        unsigned char c;
+        int n;
+        while ((n = read(0, &c, 1)) < 0 && errno == EINTR) ;
+        if (n == 0) return 0;
+        else return (int)c;
+    }
+    else return 0;
 }

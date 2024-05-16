@@ -42,6 +42,7 @@
 extern int errno;
 struct termios otty,ntty;
 int tinit(void);
+int getch(void);
 void initialize(void);
 void reset(void);
 
