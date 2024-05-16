@@ -1,12 +1,14 @@
-#ifndef __BIRD__
-#define __BIRD__
+#ifndef __GAMEBASE__
+#define __GAMEBASE__
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
+#include <termios.h>
 #include <unistd.h>
 #include <signal.h>
 
-#define clearScreen() printf("\033[2")
+#define clearScreen() printf("\033[2J")
 #define setPosition(x,y) printf("\033[%d;%dH",(y)+1,(x)*2+1)
 #define cursolOn() printf("\033[?25h")
 #define cursolOff() printf("\033[?25l")
@@ -37,10 +39,10 @@
 #define KEY_RIGHT 0x43
 #define KEY_LEFT 0x44
 
-char key;
 extern int errno;
+struct termios otty,ntty;
+int tinit(void);
 void initialize(void);
 void reset(void);
-void clear(void);
 
 #endif
