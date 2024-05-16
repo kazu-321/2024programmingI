@@ -3,6 +3,13 @@
     "files.associations": {
         "tetris.h": "c",
         "stdio.h": "c",
-        "unistd.h": "c"
-    }
+        "unistd.h": "c",
+        "select.h": "c",
+        "signal.h": "c",
+        "termios.h": "c",
+        "stdlib.h": "c",
+        "errno.h": "c",
+        "gamebase.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
