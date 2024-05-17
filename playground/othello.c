@@ -12,7 +12,7 @@
 int cursor_row = 0, cursor_col = 0;
 struct termios orig_termios;
 
-void init_board(char board[SIZE][SIZE];) {
+void init_board(char board[SIZE][SIZE]) {
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             board[i][j] = EMPTY;
@@ -111,7 +111,7 @@ void place_move(int row, int col, char player,char board[SIZE][SIZE]) {
 bool has_valid_move(char player,char board[SIZE][SIZE]) {
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
-            if (is_valid_move(i, j, player)) {
+            if (is_valid_move(i, j, player,board)) {
                 return true;
             }
         }
@@ -149,8 +149,8 @@ void process_input(char *input, char *player,char board[SIZE][SIZE]) {
             break;
         case ' ': // Space
             printf("space!\n");
-            if (is_valid_move(cursor_row, cursor_col, *player)) {
-                place_move(cursor_row, cursor_col, *player);
+            if (is_valid_move(cursor_row, cursor_col, *player,board)) {
+                place_move(cursor_row, cursor_col, *player,board);
                 *player = (*player == BLACK) ? WHITE : BLACK;
             }
             break;
@@ -159,18 +159,29 @@ void process_input(char *input, char *player,char board[SIZE][SIZE]) {
 
 
 void AI(char *player,char board[SIZE][SIZE]){
-    for(int row=0;row<SIZE;row++) for(int col=0;col<SIZE;col++) if(is_valid_move(row,col,*player)){
+    int best_row,best_col;
+    int max_count=0;
+    for(int row=0;row<SIZE;row++) for(int col=0;col<SIZE;col++) if(is_valid_move(row,col,*player,board)){
         // おけるところ全てに対して
         char new_board[SIZE][SIZE];
-
-        int black_count = 0, white_count = 0;
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                if (board[i][j] == BLACK) black_count++;
-                if (board[i][j] == WHITE) white_count++;
+        for(int i=0;i<SIZE;i++){
+            for(int j=0;j<SIZE;j++){
+                new_board[i][j]=board[i][j];
             }
         }
+        place_move(row,col,player,new_board);
+        int count=0;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (new_board[i][j] == player) count++;
+            }
+        }
+        if(count>max_count){
+            best_row=row;
+            best_col=col;
+        }
     }
+    place_move(best_row,best_col,player,board);
 }
 
 
@@ -186,7 +197,7 @@ int main() {
     while (true) {
         print_board(player,board);
         if (!has_valid_move(player,board)) {
-            if (!has_valid_move((player == BLACK) ? WHITE : BLACK),board) {
+            if (!has_valid_move((player == BLACK) ? WHITE : BLACK,board)) {
                 printf("Game over!\n");
                 break;
             } else {
@@ -195,19 +206,22 @@ int main() {
                 continue;
             }
         }
+        if(player==BLACK){
+            read(STDIN_FILENO, &input, 1);
 
-        read(STDIN_FILENO, &input, 1);
-
-        if (input[0] == '\033') {
-            read(STDIN_FILENO,&input+1,1);
-            if(input[1] == '['){
-                read(STDIN_FILENO,&input+2,1);
-                process_input(&input[2], &player,board);
+            if (input[0] == '\033') {
+                read(STDIN_FILENO,&input+1,1);
+                if(input[1] == '['){
+                    read(STDIN_FILENO,&input+2,1);
+                    process_input(&input[2], &player,board);
+                }
             }
-        }
-        process_input(&input[0],&player,board);
+            process_input(&input[0],&player,board);
 
-        input[0] = 0;
+            input[0] = 0;
+        }else{
+            AI(&player,board);
+        }
     }
 
     int black_count = 0, white_count = 0;
@@ -218,8 +232,8 @@ int main() {
         }
     }
 
+    disable_raw_mode();
     printf("Final Score:\nBlack: %d\nWhite: %d\n", black_count, white_count);
     printf("Winner: %c\n", (black_count > white_count) ? BLACK : WHITE);
-
     return 0;
 }
