@@ -9,11 +9,10 @@
 #define BLACK 'B'
 #define WHITE 'W'
 
-char board[SIZE][SIZE];
 int cursor_row = 0, cursor_col = 0;
 struct termios orig_termios;
 
-void init_board() {
+void init_board(char board[SIZE][SIZE];) {
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             board[i][j] = EMPTY;
@@ -25,7 +24,7 @@ void init_board() {
     board[4][3] = BLACK;
 }
 
-void print_board(char player) {
+void print_board(char player,char board[SIZE][SIZE]) {
     printf("\033[1;1H\033[J"); // Clear screen
     printf("Use arrow keys to move cursor, space to place piece\n");
     printf("\n\033[2;1H");
@@ -53,7 +52,7 @@ void print_board(char player) {
     }
 }
 
-bool is_valid_move(int row, int col, char player) {
+bool is_valid_move(int row, int col, char player,char board[SIZE][SIZE]) {
     if (board[row][col] != EMPTY) return false;
 
     char opponent = (player == BLACK) ? WHITE : BLACK;
@@ -80,7 +79,7 @@ bool is_valid_move(int row, int col, char player) {
     return valid;
 }
 
-void place_move(int row, int col, char player) {
+void place_move(int row, int col, char player,char board[SIZE][SIZE]) {
     board[row][col] = player;
     char opponent = (player == BLACK) ? WHITE : BLACK;
     int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
@@ -109,7 +108,7 @@ void place_move(int row, int col, char player) {
     }
 }
 
-bool has_valid_move(char player) {
+bool has_valid_move(char player,char board[SIZE][SIZE]) {
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             if (is_valid_move(i, j, player)) {
@@ -134,7 +133,7 @@ void disable_raw_mode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
 }
 
-void process_input(char *input, char *player) {
+void process_input(char *input, char *player,char board[SIZE][SIZE]) {
     switch (input[0]) {
         case 'A': // Up
             if (cursor_row > 0) cursor_row--;
@@ -159,10 +158,18 @@ void process_input(char *input, char *player) {
 }
 
 
-void AI(char *player){
+void AI(char *player,char board[SIZE][SIZE]){
     for(int row=0;row<SIZE;row++) for(int col=0;col<SIZE;col++) if(is_valid_move(row,col,*player)){
         // おけるところ全てに対して
-        
+        char new_board[SIZE][SIZE];
+
+        int black_count = 0, white_count = 0;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (board[i][j] == BLACK) black_count++;
+                if (board[i][j] == WHITE) white_count++;
+            }
+        }
     }
 }
 
@@ -172,14 +179,14 @@ int main() {
     atexit(disable_raw_mode);
     enable_raw_mode();
 
-    init_board();
+    char board[SIZE][SIZE];
+    init_board(board);
     char player = BLACK;
     char input[3];
-
     while (true) {
-        print_board(player);
-        if (!has_valid_move(player)) {
-            if (!has_valid_move((player == BLACK) ? WHITE : BLACK)) {
+        print_board(player,board);
+        if (!has_valid_move(player,board)) {
+            if (!has_valid_move((player == BLACK) ? WHITE : BLACK),board) {
                 printf("Game over!\n");
                 break;
             } else {
@@ -195,10 +202,10 @@ int main() {
             read(STDIN_FILENO,&input+1,1);
             if(input[1] == '['){
                 read(STDIN_FILENO,&input+2,1);
-                process_input(&input[2], &player);
+                process_input(&input[2], &player,board);
             }
         }
-        process_input(&input[0],&player);
+        process_input(&input[0],&player,board);
 
         input[0] = 0;
     }
