@@ -40,10 +40,10 @@ void print_board(char player,char board[SIZE][SIZE]) {
                     printf("\033[42m\033[34m.\033[0m");
                     break;
                 case BLACK:
-                    printf("\033[42m\033[40m@\033[0m");
+                    printf("\033[42m\033[30m@\033[0m");
                     break;
                 case WHITE:
-                    printf("\033[44m\033[47m@\033[0m");
+                    printf("\033[44m\033[37m@\033[0m");
                     break;
                 }
             }
@@ -131,6 +131,7 @@ void enable_raw_mode() {
 
 void disable_raw_mode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+    write(1,"\n",1);
 }
 
 void process_input(char *input, char *player,char board[SIZE][SIZE]) {
@@ -158,10 +159,10 @@ void process_input(char *input, char *player,char board[SIZE][SIZE]) {
 }
 
 
-void AI(char *player,char board[SIZE][SIZE]){
+void AI(char player,char board[SIZE][SIZE]){
     int best_row,best_col;
     int max_count=0;
-    for(int row=0;row<SIZE;row++) for(int col=0;col<SIZE;col++) if(is_valid_move(row,col,*player,board)){
+    for(int row=0;row<SIZE;row++) for(int col=0;col<SIZE;col++) if(is_valid_move(row,col,player,board)){
         // おけるところ全てに対して
         char new_board[SIZE][SIZE];
         for(int i=0;i<SIZE;i++){
@@ -195,19 +196,19 @@ int main() {
     char player = BLACK;
     char input[3];
     while (true) {
-        print_board(player,board);
-        if (!has_valid_move(player,board)) {
-            if (!has_valid_move((player == BLACK) ? WHITE : BLACK,board)) {
-                printf("Game over!\n");
-                break;
-            } else {
-                printf("Player %c has no valid moves, skipping turn.\n", player);
-                player = (player == BLACK) ? WHITE : BLACK;
-                continue;
-            }
-        }
         if(player==BLACK){
-            read(STDIN_FILENO, &input, 1);
+            print_board(player,board);
+            if (!has_valid_move(player,board)) {
+                if (!has_valid_move(WHITE,board)) {
+                    printf("Game over!\n");
+                    break;
+                } else {
+                    printf("Player %c has no valid moves, skipping turn.\n", player);
+                    player =  WHITE;
+                    continue;
+                }
+            }
+                read(STDIN_FILENO, &input, 1);
 
             if (input[0] == '\033') {
                 read(STDIN_FILENO,&input+1,1);
@@ -220,7 +221,8 @@ int main() {
 
             input[0] = 0;
         }else{
-            AI(&player,board);
+            AI(player,board);
+            player=BLACK;
         }
     }
 
@@ -233,7 +235,7 @@ int main() {
     }
 
     disable_raw_mode();
-    printf("Final Score:\nBlack: %d\nWhite: %d\n", black_count, white_count);
-    printf("Winner: %c\n", (black_count > white_count) ? BLACK : WHITE);
+    printf("\r\nFinal Score:\r\nBlack: %d\r\nWhite: %d\r\n", black_count, white_count);
+    printf("Winner: %c\r\n", (black_count > white_count) ? BLACK : WHITE);
     return 0;
 }
