@@ -149,7 +149,6 @@ void process_input(char *input, char *player,char board[SIZE][SIZE]) {
             if (cursor_col > 0) cursor_col--;
             break;
         case ' ': // Space
-            printf("space!\n");
             if (is_valid_move(cursor_row, cursor_col, *player,board)) {
                 place_move(cursor_row, cursor_col, *player,board);
                 *player = (*player == BLACK) ? WHITE : BLACK;
@@ -208,7 +207,7 @@ int main() {
                     continue;
                 }
             }
-                read(STDIN_FILENO, &input, 1);
+            read(STDIN_FILENO, &input, 1);
 
             if (input[0] == '\033') {
                 read(STDIN_FILENO,&input+1,1);
@@ -237,5 +236,4 @@ int main() {
     disable_raw_mode();
     printf("\r\nFinal Score:\r\nBlack: %d\r\nWhite: %d\r\n", black_count, white_count);
     printf("Winner: %c\r\n", (black_count > white_count) ? BLACK : WHITE);
-    return 0;
 }

@@ -6,7 +6,7 @@
 
 #define WIDTH 10
 #define HEIGHT 20
-#define DELAY 300000
+#define DELAY 100000
 
 typedef struct {
     int x, y;
@@ -32,7 +32,7 @@ void init_board() {
 }
 
 void draw_board() {
-    system("clear");
+    printf("\033[1;1H\033[J");
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
             if (board[y][x])
@@ -40,7 +40,7 @@ void draw_board() {
             else
                 printf(".");
         }
-        printf("\n");
+        printf("\033[%d;1H", y + 2);
     }
 }
 
@@ -118,17 +118,23 @@ int main() {
     current.x = WIDTH / 2 - 2;
     current.y = 0;
 
-    int ch;
+    char ch;
+    int timer = 0;
     while (1) {
         Tetromino next = current;
 
         if (read(STDIN_FILENO, &ch, 1) == 1) {
+            if (ch == '\033') {
+                read(STDIN_FILENO, &ch, 1);
+                read(STDIN_FILENO, &ch, 1);
+            }
             switch (ch) {
                 case 'A': // Up arrow
                     rotate_tetromino(&next);
                     break;
                 case 'B': // Down arrow
                     next.y++;
+                    timer = 0;
                     break;
                 case 'C': // Right arrow
                     next.x++;
@@ -145,9 +151,15 @@ int main() {
             }
         }
 
+        timer++;
+        if (timer >= 10) {
+            next.y++;
+            timer = 0;
+        }
+
         if (!check_collision(&next)) {
             current = next;
-        } else if (ch == 'B') {
+        } else if (ch == 'B' || timer == 0) {
             merge_tetromino(&current);
             clear_lines();
             current = tetrominos[rand() % 7];
