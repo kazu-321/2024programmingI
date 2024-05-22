@@ -32,18 +32,17 @@ void print_board(char player,char board[SIZE][SIZE]) {
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             if (i == cursor_row && j == cursor_col) {
-                if(player==BLACK) printf("\033[40mO\033[0m");
-                else printf("\033[47mO\033[0m");
+                printf("\033[42;30mO\033[0m");
             } else {
                 switch(board[i][j]){
                 case EMPTY:
-                    printf("\033[42m\033[34m.\033[0m");
+                    printf("\033[42;34m \033[0m");
                     break;
                 case BLACK:
-                    printf("\033[42m\033[30m@\033[0m");
+                    printf("\033[42;30m@\033[0m");
                     break;
                 case WHITE:
-                    printf("\033[44m\033[37m@\033[0m");
+                    printf("\033[43;37m@\033[0m");
                     break;
                 }
             }
