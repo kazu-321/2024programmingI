@@ -1,9 +1,9 @@
 #include <stdio.h>
 int main(void){
     int a=20;
-    printf("%d\n",a==20);
-    printf("%d\n",a>20);
-    printf("%d\n",a>=0&&a<10);
-    printf("%d\n",a>=0||a<10);
-    return 0
+    printf("%d\n",a==20);       // 1 (aは20と等しいので 1)
+    printf("%d\n",a>20);        // 0 (aは20より大きくないので 0)
+    printf("%d\n",a>=0&&a<10);  // 0 (aは0以上だがaは10未満ではない &&は"かつ"という意味なのでどちらも満たしていないので 0)
+    printf("%d\n",a>=0||a<10);  // 1 (aは0以上だがaは10未満ではない ||は"または"という意味なのでどちらかが満たしているので 1)
+    return 0;
 }
