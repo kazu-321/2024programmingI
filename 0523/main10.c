@@ -13,7 +13,7 @@ int main(){
     do{
         printf("+");
         i++;
-    }while(i<12);
+    }while(i<11);
     printf("\n");
 
     for(i=0;i<10;i++){
@@ -21,6 +21,6 @@ int main(){
     }
     printf("\n");
 
-    
+
     return 0;
 }
