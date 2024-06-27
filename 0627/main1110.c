@@ -7,4 +7,5 @@ int main(){
     printf("%s\n", gm);
     printf("%s\n", hl);
     printf("%s\n", gn);
+    return 0;
 }
